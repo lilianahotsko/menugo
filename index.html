@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MenuGo — Order Smarter. Eat Better.</title>
+  <meta name="description" content="MenuGo transforms the restaurant experience with AI-powered digital menus, pre-ordering, nutrition data, and allergen alerts." />
+  <meta property="og:title" content="MenuGo — Order Smarter. Eat Better." />
+  <meta property="og:description" content="No more waiting. No more barriers. No more guessing." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Variables ─────────────────────────────────────────────── */
+    :root {
+      --c-bg:       #0d0d0d;
+      --c-surface:  #141414;
+      --c-card:     #1a1a1a;
+      --c-border:   rgba(255,255,255,0.07);
+      --c-text:     #f0ede8;
+      --c-muted:    rgba(240,237,232,0.45);
+      --c-orange:   #ff6b35;
+      --c-orange-2: #e85d20;
+      --c-cream:    #fff3e8;
+      --c-gold:     #f5a623;
+      --r:          14px;
+    }
+
+    /* ── Reset ─────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--c-bg);
+      color: var(--c-text);
+      overflow-x: hidden;
+    }
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Noise overlay ─────────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+      background-size: 200px;
+      opacity: 0.6;
+    }
+    section, header, footer, nav { position: relative; z-index: 1; }
+
+    /* ── Typography helpers ────────────────────────────────────── */
+    .display {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+    .orange { color: var(--c-orange); }
+    .muted  { color: var(--c-muted); }
+
+    /* ── Nav ───────────────────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 5vw;
+      height: 68px;
+      background: rgba(13,13,13,0.8);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--c-border);
+      transition: background 0.3s;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.45rem; font-weight: 900;
+    }
+    .nav-logo-icon {
+      width: 34px; height: 34px;
+      background: var(--c-orange);
+      border-radius: 9px;
+      display: grid; place-items: center;
+      font-size: 1rem;
+    }
+    .nav-links {
+      display: flex; align-items: center; gap: 36px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 0.875rem; font-weight: 500;
+      color: var(--c-muted);
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--c-text); }
+    .nav-cta {
+      background: var(--c-orange);
+      color: #fff !important;
+      padding: 9px 22px;
+      border-radius: 8px;
+      font-weight: 600 !important;
+      font-size: 0.875rem !important;
+      transition: background 0.2s, transform 0.15s !important;
+    }
+    .nav-cta:hover { background: var(--c-orange-2) !important; transform: translateY(-1px); }
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+    .hamburger span { display: block; width: 24px; height: 2px; background: var(--c-text); border-radius: 2px; transition: 0.3s; }
+
+    /* ── Hero ──────────────────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 120px 5vw 80px;
+      position: relative; overflow: hidden;
+    }
+    .hero-glow {
+      position: absolute; top: -20%; right: -10%;
+      width: 70vw; height: 70vw; max-width: 800px; max-height: 800px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,107,53,0.18) 0%, transparent 70%);
+      pointer-events: none;
+      animation: pulse-glow 6s ease-in-out infinite;
+    }
+    @keyframes pulse-glow {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.06); opacity: 0.7; }
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,107,53,0.12);
+      border: 1px solid rgba(255,107,53,0.3);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 0.78rem; font-weight: 600;
+      color: var(--c-orange);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      width: fit-content;
+      margin-bottom: 28px;
+      animation: fade-up 0.6s ease both;
+    }
+    .hero-badge-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--c-orange);
+      animation: blink 1.8s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.2} }
+    .hero-title {
+      font-size: clamp(3rem, 7vw, 6.5rem);
+      max-width: 780px;
+      margin-bottom: 28px;
+      animation: fade-up 0.7s ease 0.1s both;
+    }
+    .hero-title em { font-style: italic; color: var(--c-orange); }
+    .hero-sub {
+      font-size: clamp(1rem, 1.6vw, 1.2rem);
+      color: var(--c-muted);
+      max-width: 520px;
+      line-height: 1.7;
+      margin-bottom: 48px;
+      font-weight: 300;
+      animation: fade-up 0.7s ease 0.2s both;
+    }
+    .hero-actions {
+      display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+      animation: fade-up 0.7s ease 0.3s both;
+    }
+    .btn-primary {
+      background: var(--c-orange);
+      color: #fff;
+      padding: 15px 32px;
+      border-radius: 10px;
+      font-weight: 600; font-size: 1rem;
+      display: inline-flex; align-items: center; gap: 10px;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 24px rgba(255,107,53,0.3);
+    }
+    .btn-primary:hover { background: var(--c-orange-2); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(255,107,53,0.4); }
+    .btn-ghost {
+      color: var(--c-muted);
+      font-weight: 500; font-size: 1rem;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: color 0.2s;
+    }
+    .btn-ghost:hover { color: var(--c-text); }
+    .hero-stats {
+      display: flex; gap: 48px; flex-wrap: wrap;
+      margin-top: 80px;
+      padding-top: 40px;
+      border-top: 1px solid var(--c-border);
+      animation: fade-up 0.7s ease 0.45s both;
+    }
+    .hero-stat-val {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.4rem; font-weight: 700;
+      color: var(--c-orange);
+    }
+    .hero-stat-label { font-size: 0.82rem; color: var(--c-muted); margin-top: 4px; font-weight: 400; }
+
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Section wrapper ───────────────────────────────────────── */
+    .section { padding: 100px 5vw; }
+    .section-label {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--c-orange);
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      max-width: 640px;
+      margin-bottom: 18px;
+    }
+    .section-sub {
+      font-size: 1.05rem; color: var(--c-muted);
+      max-width: 520px; line-height: 1.7; font-weight: 300;
+      margin-bottom: 64px;
+    }
+
+    /* ── Problems ──────────────────────────────────────────────── */
+    .problems { background: var(--c-surface); }
+    .problems-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 2px;
+    }
+    .problem-card {
+      background: var(--c-card);
+      padding: 40px 36px;
+      position: relative; overflow: hidden;
+      transition: background 0.2s;
+    }
+    .problem-card:hover { background: #1f1f1f; }
+    .problem-card-accent {
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 3px; background: var(--c-orange);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.35s ease;
+    }
+    .problem-card:hover .problem-card-accent { transform: scaleX(1); }
+    .problem-icon {
+      width: 52px; height: 52px;
+      background: rgba(255,107,53,0.12);
+      border-radius: 12px;
+      display: grid; place-items: center;
+      font-size: 1.4rem;
+      margin-bottom: 22px;
+    }
+    .problem-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 10px; }
+    .problem-desc { font-size: 0.9rem; color: var(--c-muted); line-height: 1.65; font-weight: 300; }
+
+    /* ── How it works ──────────────────────────────────────────── */
+    .how { }
+    .how-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 28px;
+    }
+    .how-step {
+      background: var(--c-card);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r);
+      padding: 40px 36px;
+      position: relative;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .how-step:hover { border-color: rgba(255,107,53,0.35); transform: translateY(-4px); }
+    .step-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 4rem; font-weight: 900;
+      color: rgba(255,107,53,0.12);
+      line-height: 1;
+      margin-bottom: 8px;
+      transition: color 0.2s;
+    }
+    .how-step:hover .step-num { color: rgba(255,107,53,0.25); }
+    .step-icon { font-size: 1.8rem; margin-bottom: 16px; }
+    .step-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 10px; }
+    .step-desc { font-size: 0.9rem; color: var(--c-muted); line-height: 1.65; font-weight: 300; }
+
+    /* ── Features ──────────────────────────────────────────────── */
+    .features { background: var(--c-surface); }
+    .features-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+    }
+    .feature-big {
+      background: var(--c-card);
+      padding: 56px 52px;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      min-height: 380px;
+      position: relative; overflow: hidden;
+    }
+    .feature-big-bg {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,107,53,0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .feature-big-emoji {
+      font-size: 4rem; margin-bottom: auto; padding-top: 8px;
+      animation: float 4s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .feature-big-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 10px; }
+    .feature-big-desc { font-size: 0.92rem; color: var(--c-muted); line-height: 1.65; font-weight: 300; max-width: 360px; }
+    .feature-small {
+      background: var(--c-card);
+      padding: 40px 44px;
+      display: flex; flex-direction: column; gap: 0;
+    }
+    .feature-small-item {
+      display: flex; gap: 20px;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--c-border);
+    }
+    .feature-small-item:last-child { border-bottom: none; }
+    .feature-small-icon {
+      width: 44px; height: 44px; min-width: 44px;
+      background: rgba(255,107,53,0.1);
+      border-radius: 10px;
+      display: grid; place-items: center;
+      font-size: 1.15rem;
+    }
+    .feature-small-title { font-size: 1rem; font-weight: 600; margin-bottom: 5px; }
+    .feature-small-desc { font-size: 0.87rem; color: var(--c-muted); line-height: 1.6; font-weight: 300; }
+
+    /* ── Allergen / nutrition callout ──────────────────────────── */
+    .callout {
+      margin: 0 5vw;
+      border-radius: 20px;
+      background: linear-gradient(130deg, rgba(255,107,53,0.14) 0%, rgba(229,93,32,0.06) 100%);
+      border: 1px solid rgba(255,107,53,0.2);
+      padding: 72px 8vw;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+    .callout-title { font-size: clamp(1.8rem, 3vw, 2.8rem); margin-bottom: 18px; }
+    .callout-desc { font-size: 1rem; color: var(--c-muted); line-height: 1.75; font-weight: 300; }
+    .allergen-pills {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      margin-top: 28px;
+    }
+    .allergen-pill {
+      background: rgba(255,107,53,0.1);
+      border: 1px solid rgba(255,107,53,0.25);
+      border-radius: 100px;
+      padding: 7px 16px;
+      font-size: 0.82rem; font-weight: 500; color: var(--c-orange);
+    }
+    .callout-visual {
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .nutrition-row {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--c-border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .nutrition-row-label { font-size: 0.88rem; color: var(--c-muted); font-weight: 400; }
+    .nutrition-row-val { font-size: 1rem; font-weight: 600; color: var(--c-text); }
+    .nutrition-bar-wrap {
+      height: 4px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 2px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+    .nutrition-bar {
+      height: 100%; background: var(--c-orange); border-radius: 2px;
+      animation: grow-bar 1.8s cubic-bezier(0.4,0,0.2,1) forwards;
+      width: 0;
+    }
+    @keyframes grow-bar { to { width: var(--w); } }
+
+    /* ── Testimonials ──────────────────────────────────────────── */
+    .testimonials { }
+    .testi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .testi-card {
+      background: var(--c-card);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r);
+      padding: 36px;
+      transition: border-color 0.2s;
+    }
+    .testi-card:hover { border-color: rgba(255,107,53,0.3); }
+    .testi-stars { color: var(--c-gold); font-size: 0.9rem; margin-bottom: 16px; letter-spacing: 2px; }
+    .testi-quote { font-size: 0.97rem; color: var(--c-muted); line-height: 1.7; font-weight: 300; margin-bottom: 24px; }
+    .testi-author { display: flex; align-items: center; gap: 12px; }
+    .testi-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--c-orange), var(--c-orange-2));
+      display: grid; place-items: center;
+      font-size: 1rem; color: #fff; font-weight: 700;
+    }
+    .testi-name { font-size: 0.92rem; font-weight: 600; }
+    .testi-role { font-size: 0.8rem; color: var(--c-muted); }
+
+    /* ── CTA ───────────────────────────────────────────────────── */
+    .cta-section {
+      padding: 120px 5vw;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .cta-glow {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 600px; height: 400px;
+      background: radial-gradient(ellipse, rgba(255,107,53,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-title { font-size: clamp(2.2rem, 5vw, 4.5rem); max-width: 700px; margin: 0 auto 20px; }
+    .cta-sub { font-size: 1.1rem; color: var(--c-muted); max-width: 440px; margin: 0 auto 48px; line-height: 1.7; font-weight: 300; }
+    .cta-form {
+      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+      max-width: 480px; margin: 0 auto;
+    }
+    .cta-input {
+      flex: 1; min-width: 220px;
+      background: var(--c-card);
+      border: 1px solid var(--c-border);
+      border-radius: 10px;
+      padding: 14px 20px;
+      color: var(--c-text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .cta-input:focus { border-color: rgba(255,107,53,0.5); }
+    .cta-input::placeholder { color: var(--c-muted); }
+    .cta-btn {
+      background: var(--c-orange);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 28px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem; font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      box-shadow: 0 4px 20px rgba(255,107,53,0.3);
+    }
+    .cta-btn:hover { background: var(--c-orange-2); transform: translateY(-1px); }
+    .cta-note { font-size: 0.78rem; color: var(--c-muted); margin-top: 16px; }
+
+    /* ── Footer ────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--c-border);
+      padding: 52px 5vw 36px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 32px;
+      align-items: start;
+    }
+    .footer-brand { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 900; margin-bottom: 10px; }
+    .footer-tagline { font-size: 0.85rem; color: var(--c-muted); font-weight: 300; }
+    .footer-links { display: flex; gap: 28px; flex-wrap: wrap; align-items: center; }
+    .footer-links a { font-size: 0.85rem; color: var(--c-muted); transition: color 0.2s; }
+    .footer-links a:hover { color: var(--c-text); }
+    .footer-copy {
+      grid-column: 1/-1;
+      padding-top: 24px;
+      border-top: 1px solid var(--c-border);
+      font-size: 0.78rem; color: var(--c-muted);
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+    }
+
+    /* ── Scroll reveal ─────────────────────────────────────────── */
+    .reveal {
+      opacity: 0; transform: translateY(32px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ── Mobile nav ────────────────────────────────────────────── */
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      position: fixed; top: 68px; left: 0; right: 0;
+      background: rgba(13,13,13,0.97);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--c-border);
+      padding: 24px 5vw;
+      gap: 20px; z-index: 99;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { font-size: 1rem; font-weight: 500; color: var(--c-muted); transition: color 0.2s; }
+    .mobile-menu a:hover { color: var(--c-text); }
+
+    /* ── Responsive ────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .features-layout { grid-template-columns: 1fr; }
+      .callout { grid-template-columns: 1fr; padding: 52px 7vw; }
+      footer { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .hero-stats { gap: 28px; }
+      .section { padding: 72px 5vw; }
+      .feature-big { padding: 40px 32px; min-height: 280px; }
+      .callout { margin: 0 3vw; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAV ──────────────────────────────────────────────────── -->
+  <nav>
+    <div class="nav-logo">
+      <div class="nav-logo-icon">🍽</div>
+      Menu<span class="orange">Go</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#problems">Problems</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#early-access" class="nav-cta">Get Early Access</a></li>
+    </ul>
+    <div class="hamburger" id="hamburger" aria-label="Menu" role="button" tabindex="0">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#problems" onclick="closeMobile()">Problems</a>
+    <a href="#how" onclick="closeMobile()">How it works</a>
+    <a href="#features" onclick="closeMobile()">Features</a>
+    <a href="#early-access" onclick="closeMobile()" style="color:var(--c-orange);font-weight:600;">Get Early Access →</a>
+  </div>
+
+  <!-- ─── HERO ──────────────────────────────────────────────────── -->
+  <header class="hero" id="home">
+    <div class="hero-glow"></div>
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      Now in early access
+    </div>
+    <h1 class="hero-title display">
+      Order <em>smarter.</em><br>Eat better.<br>No barriers.
+    </h1>
+    <p class="hero-sub">
+      MenuGo transforms every restaurant visit — digital menus in your language, pre-ordering from your seat, real nutrition data, and instant allergen alerts.
+    </p>
+    <div class="hero-actions">
+      <a href="#early-access" class="btn-primary">
+        Get Early Access
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <a href="#how" class="btn-ghost">
+        See how it works
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      </a>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="hero-stat-val">8.5B+</div>
+        <div class="hero-stat-label">restaurant visits per year</div>
+      </div>
+      <div>
+        <div class="hero-stat-val">35%</div>
+        <div class="hero-stat-label">orders lost to friction</div>
+      </div>
+      <div>
+        <div class="hero-stat-val">200K+</div>
+        <div class="hero-stat-label">allergen ER visits yearly</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── PROBLEMS ──────────────────────────────────────────────── -->
+  <section class="section problems" id="problems">
+    <div class="section-label reveal">The problem</div>
+    <h2 class="section-title display reveal">Dining out is full of invisible friction.</h2>
+    <p class="section-sub reveal">Every visit hides four pain points that frustrate diners and cost restaurants revenue.</p>
+    <div class="problems-grid reveal">
+      <div class="problem-card">
+        <div class="problem-card-accent"></div>
+        <div class="problem-icon">📢</div>
+        <div class="problem-title">Noisy & Busy Places</div>
+        <div class="problem-desc">Shouting your order over the noise is stressful for diners and error-prone for staff — especially in packed venues.</div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-card-accent"></div>
+        <div class="problem-icon">🌐</div>
+        <div class="problem-title">Language Barriers</div>
+        <div class="problem-desc">Tourists and non-native speakers struggle to understand menus, leading to wrong orders, frustration, and lost revenue.</div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-card-accent"></div>
+        <div class="problem-icon">⏳</div>
+        <div class="problem-title">The Waiting Game</div>
+        <div class="problem-desc">Waiting to be seated, waiting for a server, waiting to order — it adds up. Dead time that erodes the whole experience.</div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-card-accent"></div>
+        <div class="problem-icon">⚠️</div>
+        <div class="problem-title">Hidden Allergens</div>
+        <div class="problem-desc">200K+ emergency room visits per year in North America alone are caused by unlabeled or misunderstood allergens in restaurant food.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── HOW IT WORKS ──────────────────────────────────────────── -->
+  <section class="section how" id="how">
+    <div class="section-label reveal">How it works</div>
+    <h2 class="section-title display reveal">Three steps to a frictionless meal.</h2>
+    <p class="section-sub reveal">MenuGo fits seamlessly into any restaurant experience — for diners and operators alike.</p>
+    <div class="how-steps">
+      <div class="how-step reveal">
+        <div class="step-num">01</div>
+        <div class="step-icon">📱</div>
+        <div class="step-title">Scan or Pre-order</div>
+        <div class="step-desc">Scan the QR code on the table, or pre-order from home before you even arrive. Your order is ready the moment you sit down.</div>
+      </div>
+      <div class="how-step reveal" style="transition-delay:0.1s">
+        <div class="step-num">02</div>
+        <div class="step-icon">🔍</div>
+        <div class="step-title">Explore the Smart Menu</div>
+        <div class="step-desc">Browse in your language, view full macro & micro nutrition data, and see instant allergen alerts tailored to your dietary profile.</div>
+      </div>
+      <div class="how-step reveal" style="transition-delay:0.2s">
+        <div class="step-num">03</div>
+        <div class="step-icon">✅</div>
+        <div class="step-title">Order & Enjoy</div>
+        <div class="step-desc">Confirm your customised order with one tap. No waiting, no miscommunication, no surprises — just great food.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FEATURES ──────────────────────────────────────────────── -->
+  <section class="section features" id="features">
+    <div class="section-label reveal">Features</div>
+    <h2 class="section-title display reveal">Everything a modern diner needs.</h2>
+    <p class="section-sub reveal">Designed for diners. Built for restaurants. Loved by everyone at the table.</p>
+    <div class="features-layout reveal">
+      <div class="feature-big">
+        <div class="feature-big-bg"></div>
+        <div class="feature-big-emoji">📲</div>
+        <div class="feature-big-title">Digital QR Menus</div>
+        <div class="feature-big-desc">Beautiful, fast, always up-to-date menus accessible by scanning a QR code — no app download needed. Photos, descriptions, prices, all in one place.</div>
+      </div>
+      <div class="feature-small">
+        <div class="feature-small-item">
+          <div class="feature-small-icon">⚡</div>
+          <div>
+            <div class="feature-small-title">Pre-Ordering</div>
+            <div class="feature-small-desc">Order before arriving or directly from the table. Zero wait time, zero friction — your food is ready the moment it needs to be.</div>
+          </div>
+        </div>
+        <div class="feature-small-item">
+          <div class="feature-small-icon">🌍</div>
+          <div>
+            <div class="feature-small-title">Auto-Translation</div>
+            <div class="feature-small-desc">Menus displayed in the user's native language automatically — breaking language barriers for tourists and locals alike.</div>
+          </div>
+        </div>
+        <div class="feature-small-item">
+          <div class="feature-small-icon">⚙️</div>
+          <div>
+            <div class="feature-small-title">Quick Management</div>
+            <div class="feature-small-desc">Restaurants update menus in real-time — change prices, mark items sold-out, add daily specials. No reprinting required.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── ALLERGEN / NUTRITION CALLOUT ─────────────────────────── -->
+  <div class="callout reveal" id="nutrition">
+    <div>
+      <div class="section-label">Safety & Wellness</div>
+      <h2 class="callout-title display">Know exactly what you're eating.</h2>
+      <p class="callout-desc">Full macro & micronutrient data for every dish — calories, protein, carbs, fat, vitamins, minerals. Plus real-time allergen alerts with smart ingredient substitutes when something doesn't work for you.</p>
+      <div class="allergen-pills">
+        <span class="allergen-pill">🥜 Peanuts</span>
+        <span class="allergen-pill">🐄 Dairy</span>
+        <span class="allergen-pill">🌾 Gluten</span>
+        <span class="allergen-pill">🦐 Shellfish</span>
+        <span class="allergen-pill">🥚 Eggs</span>
+        <span class="allergen-pill">🌰 Tree Nuts</span>
+        <span class="allergen-pill">🐟 Fish</span>
+        <span class="allergen-pill">+ 7 more</span>
+      </div>
+    </div>
+    <div class="callout-visual">
+      <div class="nutrition-row">
+        <div>
+          <div class="nutrition-row-label">Calories</div>
+          <div class="nutrition-bar-wrap"><div class="nutrition-bar" style="--w:72%"></div></div>
+        </div>
+        <div class="nutrition-row-val">420 kcal</div>
+      </div>
+      <div class="nutrition-row">
+        <div>
+          <div class="nutrition-row-label">Protein</div>
+          <div class="nutrition-bar-wrap"><div class="nutrition-bar" style="--w:55%;animation-delay:0.2s"></div></div>
+        </div>
+        <div class="nutrition-row-val">34g</div>
+      </div>
+      <div class="nutrition-row">
+        <div>
+          <div class="nutrition-row-label">Carbohydrates</div>
+          <div class="nutrition-bar-wrap"><div class="nutrition-bar" style="--w:48%;animation-delay:0.35s"></div></div>
+        </div>
+        <div class="nutrition-row-val">38g</div>
+      </div>
+      <div class="nutrition-row">
+        <div>
+          <div class="nutrition-row-label">Fats</div>
+          <div class="nutrition-bar-wrap"><div class="nutrition-bar" style="--w:32%;animation-delay:0.5s"></div></div>
+        </div>
+        <div class="nutrition-row-val">14g</div>
+      </div>
+      <div class="nutrition-row">
+        <div>
+          <div class="nutrition-row-label">Fibre</div>
+          <div class="nutrition-bar-wrap"><div class="nutrition-bar" style="--w:20%;animation-delay:0.65s"></div></div>
+        </div>
+        <div class="nutrition-row-val">5g</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TESTIMONIALS ──────────────────────────────────────────── -->
+  <section class="section testimonials">
+    <div class="section-label reveal">Early feedback</div>
+    <h2 class="section-title display reveal">Diners & restaurateurs love it.</h2>
+    <div class="testi-grid reveal">
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-quote">"As someone with a severe nut allergy, MenuGo is genuinely life-changing. I can eat out without anxiety for the first time in years."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">S</div>
+          <div>
+            <div class="testi-name">Sarah K.</div>
+            <div class="testi-role">Food blogger, Toronto</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-quote">"We reduced order errors by 60% in the first month. Staff can focus on hospitality, not decoding handwriting or shouting over noise."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">M</div>
+          <div>
+            <div class="testi-name">Marco R.</div>
+            <div class="testi-role">Restaurant Owner, Milan</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-quote">"Travelled to Japan and actually knew what I was ordering. The auto-translation is incredibly accurate — even for complex dishes."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">A</div>
+          <div>
+            <div class="testi-name">Aiko T.</div>
+            <div class="testi-role">Frequent traveller</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── CTA ───────────────────────────────────────────────────── -->
+  <section class="cta-section" id="early-access">
+    <div class="cta-glow"></div>
+    <div class="section-label" style="text-align:center;margin-bottom:20px">Early access</div>
+    <h2 class="cta-title display reveal">
+      Ready to <em style="color:var(--c-orange);font-style:italic">reimagine</em><br>your next meal?
+    </h2>
+    <p class="cta-sub reveal">Join thousands of diners and restaurateurs on the waitlist. Be the first to experience MenuGo.</p>
+    <div class="cta-form reveal">
+      <input class="cta-input" type="email" placeholder="your@email.com" id="emailInput" />
+      <button class="cta-btn" onclick="handleSignup()">Join Waitlist</button>
+    </div>
+    <p class="cta-note reveal" id="signupMsg">No spam. Unsubscribe anytime.</p>
+  </section>
+
+  <!-- ─── FOOTER ────────────────────────────────────────────────── -->
+  <footer>
+    <div>
+      <div class="footer-brand">Menu<span class="orange">Go</span></div>
+      <div class="footer-tagline">Order Smarter. Eat Better. No Barriers.</div>
+    </div>
+    <div class="footer-links">
+      <a href="#problems">Problems</a>
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="mailto:hello@menugo.io">hello@menugo.io</a>
+    </div>
+    <div class="footer-copy">
+      <span>© 2025 MenuGo. All rights reserved.</span>
+      <span style="color:var(--c-muted)">menugo.io</span>
+    </div>
+  </footer>
+
+  <script>
+    // ── Mobile menu ────────────────────────────────────────────
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobileMenu');
+    hamburger.addEventListener('click', () => {
+      mobileMenu.classList.toggle('open');
+    });
+    function closeMobile() { mobileMenu.classList.remove('open'); }
+
+    // ── Scroll reveal ──────────────────────────────────────────
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    reveals.forEach(el => observer.observe(el));
+
+    // ── Waitlist signup ────────────────────────────────────────
+    function handleSignup() {
+      const input = document.getElementById('emailInput');
+      const msg = document.getElementById('signupMsg');
+      const email = input.value.trim();
+      const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRe.test(email)) {
+        msg.textContent = '⚠ Please enter a valid email address.';
+        msg.style.color = 'var(--c-orange)';
+        return;
+      }
+      input.value = '';
+      msg.textContent = '🎉 You\'re on the list! We\'ll be in touch soon.';
+      msg.style.color = '#4ade80';
+    }
+    document.getElementById('emailInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleSignup();
+    });
+
+    // ── Smooth active nav ──────────────────────────────────────
+    const sections = document.querySelectorAll('section[id], header[id]');
+    const navLinks = document.querySelectorAll('.nav-links a');
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(s => {
+        if (window.scrollY >= s.offsetTop - 120) current = s.id;
+      });
+      navLinks.forEach(a => {
+        a.style.color = a.getAttribute('href') === '#' + current
+          ? 'var(--c-text)' : '';
+      });
+    }, { passive: true });
+  </script>
+</body>
+</html>
